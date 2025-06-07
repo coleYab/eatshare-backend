@@ -5,6 +5,7 @@ import (
 
 	"github.com/coleYab/erestourant/internal/db/repository"
 	"github.com/coleYab/erestourant/internal/store"
+	"github.com/coleYab/erestourant/internal/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,15 +21,12 @@ func (a *UserHandler) GetDetail(ctx *gin.Context) {
 	id := ctx.Param("id")
 	user, err := a.us.GetUserById(id)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "user not found",
-			"error":   err.Error(),
-		})
+		utils.RespondError(ctx, http.StatusNotFound, "user_not_found", "User not found", err.Error())
 		return
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"message": "user found",
+		"message": "User found",
 		"user":    user,
 	})
 }
@@ -36,10 +34,7 @@ func (a *UserHandler) GetDetail(ctx *gin.Context) {
 func (a *UserHandler) GetAll(ctx *gin.Context) {
 	users, err := a.us.GetAllUsers()
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"message": "unable to get all users",
-			"error":   err.Error(),
-		})
+		utils.RespondError(ctx, http.StatusInternalServerError, "user_fetch_failed", "Unable to retrieve users", err.Error())
 		return
 	}
 
@@ -48,7 +43,7 @@ func (a *UserHandler) GetAll(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"message": "success",
+		"message": "Success",
 		"users":   users,
 	})
 }
@@ -56,10 +51,8 @@ func (a *UserHandler) GetAll(ctx *gin.Context) {
 func (a *UserHandler) DeleteUser(ctx *gin.Context) {
 	id := ctx.Param("id")
 	if err := a.us.DeleteUser(id); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "unable to delete user",
-			"error":   err.Error(),
-		})
+		utils.RespondError(ctx, http.StatusBadRequest, "user_deletion_failed", "Unable to delete user", err.Error())
+		return
 	}
 
 	ctx.JSON(http.StatusNoContent, nil)

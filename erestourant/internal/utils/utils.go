@@ -1,25 +1,18 @@
 package utils
 
 import (
-	"fmt"
-
-	"github.com/coleYab/erestourant/internal/dto"
-	"github.com/coleYab/erestourant/internal/store"
+	"github.com/gin-gonic/gin"
 )
 
-func GetTotalOrders(paylaod dto.CreateOrderDto, st *store.MenuStore) (float64, error) {
-	var ans float64 = 0
-	for _, u := range paylaod.Items {
-		order, err := st.GetMenuByID(u.Id)
-		if err != nil {
-			return 0, fmt.Errorf("menu is not found with id %v", u.Id)
-		}
-		ans += float64(u.Qty) * order.Price
-
-		if u.Qty > int(order.Qty) {
-			return 0, fmt.Errorf("menu with id %v is out of stock", u.Id)
-		}
+func RespondError(ctx *gin.Context, statusCode int, errCode string, message string, details ...string) {
+	resp := gin.H{
+		"error":   errCode,
+		"message": message,
 	}
 
-	return ans, nil
+	if len(details) > 0 {
+		resp["details"] = details[0]
+	}
+
+	ctx.JSON(statusCode, resp)
 }

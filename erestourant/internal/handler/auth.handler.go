@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/coleYab/erestourant/internal/dto"
@@ -19,50 +18,75 @@ func NewAuthHandler(us *store.UserStore) *AuthHandler {
 }
 
 func (a *AuthHandler) Login(ctx *gin.Context) {
-	payload := dto.LoginDto{}
+	var payload dto.LoginDto
 	if err := ctx.ShouldBind(&payload); err != nil {
-		ctx.JSON(http.StatusBadRequest, err.Error())
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error":   "invalid_request",
+			"message": "Invalid request payload.",
+		})
 		return
 	}
 
 	user, err := a.us.GetUserByEmail(payload.Email)
+	if err != nil || user.Password != payload.Password {
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"error":   "invalid_credentials",
+			"message": "Invalid email or password.",
+		})
+		return
+	}
+
+	token, err := utils.CreateBasicToken(user.Email, user.ID.String())
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, "invalid credentials")
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "token_generation_failed",
+			"message": "Failed to create authentication token.",
+		})
 		return
 	}
 
-	// TODO: fix it later
-	// if err := utils.ComparePassword(payload.Password, user.Password); err != nil {
-	// 	ctx.JSON(http.StatusBadRequest, "invalid credentials "+err.Error())
-	// 	return
-	// }
-	if user.Password != payload.Password {
-		ctx.JSON(http.StatusBadRequest, "invalid credentials")
-		return
-	}
-
-	token, err := utils.CreateJwtToken(user.Email, user.ID.String())
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, "unable to create jwt token")
-		return
-	}
-
-	// TODO: add jwt token
-	ctx.JSON(200, gin.H{"message": "login successfull", "token": token})
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "Login successful",
+		"user": gin.H{
+			"id":       user.ID,
+			"username": "username", // You might want to fix this to actually use user.Username
+			"email":    user.Email,
+			"name":     user.Name,
+		},
+		"token": token,
+	})
 }
 
 func (a *AuthHandler) Register(ctx *gin.Context) {
-	payload := dto.RegisterDto{}
+	var payload dto.RegisterDto
 	if err := ctx.ShouldBind(&payload); err != nil {
-		ctx.JSON(http.StatusBadRequest, err.Error())
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error":   "invalid_request",
+			"message": "Invalid registration data.",
+		})
+		return
+	}
+
+	if _, err := a.us.GetUserByEmail(payload.Email); err == nil {
+		ctx.JSON(http.StatusConflict, gin.H{
+			"error":   "user_exists",
+			"message": "User already exists with this email.",
+		})
 		return
 	}
 
 	user, err := a.us.CreateUser(payload)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, fmt.Sprintf("unable to create user %v", err.Error()))
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "user_creation_failed",
+			"message": "Failed to create user.",
+			"details": err.Error(),
+		})
 		return
 	}
 
-	ctx.JSON(200, gin.H{"message": "user created successfully", "user": user})
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "User created successfully",
+		"user":    user,
+	})
 }
