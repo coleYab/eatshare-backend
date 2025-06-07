@@ -9,32 +9,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type MenuItem struct {
-	ID          uuid.UUID `json:"id"`
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	Price       float64   `json:"price"`
-	Qty         int32     `json:"qty"`
-}
-
-type Order struct {
-	ID         uuid.UUID        `json:"id"`
-	TotalPrice float64          `json:"totalPrice"`
-	UserId     uuid.UUID        `json:"userId"`
-	Status     string           `json:"status"`
-	CreatedAt  pgtype.Timestamp `json:"createdAt"`
-	UpdatedAt  pgtype.Timestamp `json:"updatedAt"`
-}
-
-type OrderItem struct {
-	ID         uuid.UUID     `json:"id"`
-	OrderId    uuid.UUID     `json:"orderId"`
-	MenuItemId uuid.UUID     `json:"menuItemId"`
-	Qty        int32         `json:"qty"`
-	UnitPrice  float64       `json:"unitPrice"`
-	TotalPrice pgtype.Float8 `json:"totalPrice"`
-}
-
 type User struct {
 	ID        uuid.UUID        `json:"id"`
 	Name      string           `json:"name"`
