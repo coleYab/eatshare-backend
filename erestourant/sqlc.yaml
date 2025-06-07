@@ -1,0 +1,47 @@
+version: "2"
+cloud:
+    organization: ""
+    project: ""
+    hostname: ""
+servers: []
+sql:
+  - schema: "internal/db/sql/schema/"
+    queries: "internal/db/sql/query/"
+    engine: "postgresql"
+    gen:
+      go:
+        package: "repository"
+        out: "internal/db/repository"
+        sql_package: "pgx/v5"
+        emit_json_tags: true
+        overrides:
+          - db_type: "uuid"
+            go_type: "github.com/google/uuid.UUID"
+
+          - db_type: "money"
+            go_type: "float64"
+
+          - db_type: "date"
+            go_type: "time.Time"
+
+          - db_type: "timestamp"
+            go_type: "time.Time"
+
+          - db_type: "text"
+            go_type: "string"
+
+          - db_type: "numeric"
+            go_type: "float64"
+
+          - db_type: "double"
+            go_type: "float64"
+
+          - db_type: "numeric"
+            go_type: "int64"
+
+          - db_type: "boolean"
+            go_type: "bool"
+
+          - db_type: "json"
+            go_type: "json.RawMessage"
+
