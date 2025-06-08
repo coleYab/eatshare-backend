@@ -29,14 +29,11 @@ func (s *RecipeStore) CreateRecipe(recipePayload dto.CreateRecipeDto) (repositor
 	}
 
 	for _, step := range recipePayload.Steps {
-		_, err := s.qry.AddStep(ctx, repository.AddStepParams{
+		s.qry.AddStep(ctx, repository.AddStepParams{
 			StepNumber: step.StepNumber,
 			Instruction: step.Instruction,
 			RecipeId: recipe.ID,
 		})
-		if err != nil {
-			return repository.Recipe{}, err
-		}
 	}
 
 	for _, ingredient := range recipePayload.Ingredients {
