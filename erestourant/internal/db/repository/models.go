@@ -9,6 +9,33 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Ingredient struct {
+	ID        uuid.UUID        `json:"id"`
+	Name      string           `json:"name"`
+	Quantity  string           `json:"quantity"`
+	RecipeId  uuid.UUID        `json:"recipeId"`
+	CreatedAt pgtype.Timestamp `json:"createdAt"`
+	UpdatedAt pgtype.Timestamp `json:"updatedAt"`
+}
+
+type Recipe struct {
+	ID          uuid.UUID        `json:"id"`
+	Name        string           `json:"name"`
+	Description string           `json:"description"`
+	UserId      uuid.UUID        `json:"userId"`
+	CreatedAt   pgtype.Timestamp `json:"createdAt"`
+	UpdatedAt   pgtype.Timestamp `json:"updatedAt"`
+}
+
+type Step struct {
+	ID          uuid.UUID        `json:"id"`
+	Instruction string           `json:"instruction"`
+	StepNumber  int32            `json:"stepNumber"`
+	RecipeId    uuid.UUID        `json:"recipeId"`
+	CreatedAt   pgtype.Timestamp `json:"createdAt"`
+	UpdatedAt   pgtype.Timestamp `json:"updatedAt"`
+}
+
 type User struct {
 	ID        uuid.UUID        `json:"id"`
 	Name      string           `json:"name"`
