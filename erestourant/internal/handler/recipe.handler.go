@@ -10,83 +10,78 @@ import (
 )
 
 type RecipeHandler struct {
-	us *store.UserStore
+	rs *store.RecipeStore
 }
 
-func NewRecipeHandler(us *store.UserStore) *RecipeHandler {
-	return &RecipeHandler{us: us}
+func NewRecipeHandler(us *store.RecipeStore) *RecipeHandler {
+	return &RecipeHandler{rs: us}
 }
 
-func (a *RecipeHandler) Login(ctx *gin.Context) {
-	var payload dto.LoginDto
+func (a *RecipeHandler) CreateRecipe(ctx *gin.Context) {
+	var payload dto.CreateRecipeDto
 	if err := ctx.ShouldBind(&payload); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error":   "invalid_request",
-			"message": "Invalid request payload.",
-		})
+		utils.RespondError(ctx, http.StatusBadRequest, "error_create_recipe", "invalid payload")
 		return
 	}
 
-	user, err := a.us.GetUserByEmail(payload.Email)
-	if err != nil || user.Password != payload.Password {
-		ctx.JSON(http.StatusUnauthorized, gin.H{
-			"error":   "invalid_credentials",
-			"message": "Invalid email or password.",
-		})
-		return
-	}
-
-	token, err := utils.CreateBasicToken(user.Email, user.ID.String())
+	recipe, err := a.rs.CreateRecipe(payload)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"error":   "token_generation_failed",
-			"message": "Failed to create authentication token.",
-		})
+		utils.RespondError(ctx, http.StatusBadRequest, "error_create_recipe", "unable to create the recipe")
 		return
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"message": "Login successful",
-		"user": gin.H{
-			"id":       user.ID,
-			"username": "username", // You might want to fix this to actually use user.Username
-			"email":    user.Email,
-			"name":     user.Name,
-		},
-		"token": token,
+		"message": "recipe created successfully",
+		"recipe": recipe,
 	})
 }
 
-func (a *RecipeHandler) Register(ctx *gin.Context) {
-	var payload dto.RegisterDto
-	if err := ctx.ShouldBind(&payload); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error":   "invalid_request",
-			"message": "Invalid registration data.",
-		})
-		return
-	}
-
-	if _, err := a.us.GetUserByEmail(payload.Email); err == nil {
-		ctx.JSON(http.StatusConflict, gin.H{
-			"error":   "user_exists",
-			"message": "User already exists with this email.",
-		})
-		return
-	}
-
-	user, err := a.us.CreateUser(payload)
+func (a *RecipeHandler) GetRecipeById(ctx *gin.Context) {
+	id := ctx.Param("id")
+	recipe, err := a.rs.GetRecipeById(id)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"error":   "user_creation_failed",
-			"message": "Failed to create user.",
-			"details": err.Error(),
-		})
+		utils.RespondError(ctx, http.StatusBadRequest, "delete_error", "unable to delete the recipe")
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"message": "User created successfully",
-		"user":    user,
+	steps, err := a.rs.GetStepsByRecipeId(id)
+	if err != nil {
+		utils.RespondError(ctx, http.StatusBadRequest, "delete_error", "unable to delete the recipe")
+		return
+	}
+
+	ingredients, err := a.rs.GetIngredientByRecipeId(id)
+	if err != nil {
+		utils.RespondError(ctx, http.StatusBadRequest, "delete_error", "unable to delete the recipe")
+		return
+	}
+
+	recipeDto := dto.GetRecipeDetails(recipe, steps, ingredients)
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "success", "recipe": recipeDto})
+}
+
+func (a *RecipeHandler) DeleteRecipe(ctx *gin.Context) {
+	id := ctx.Param("id")
+	if err := a.rs.DeleteRecipe(id); err != nil {
+		utils.RespondError(ctx, http.StatusBadRequest, "delete_error", "unable to delete the recipe")
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "success"})
+}
+
+func (a *RecipeHandler) GetAll(ctx *gin.Context) {
+	recipes, err := a.rs.GetAllRecipes()
+	if err != nil {}
+
+	ctx.JSON(200, gin.H{
+		"message": "success",
+		"recipes": recipes,
 	})
 }
+
+func (a *RecipeHandler) EditRecipe(ctx *gin.Context) {
+
+}
+

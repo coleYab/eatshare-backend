@@ -32,8 +32,14 @@ func (s *ApiServer) RegisterRoutes() {
 
 	// /user - > subroute
 	userRoutes := routes.NewUserRoute(s.r)
-	UserHandler := handler.NewUserHandler(userStore)
-	userRoutes.RegisterRoutes(UserHandler)
+	userHandler := handler.NewUserHandler(userStore)
+	userRoutes.RegisterRoutes(userHandler)
+
+	// /recipe - > subroute
+	recipeRoutes := routes.NewRecipeRoute(s.r)
+	recipeStore := store.NewRecipeStore(s.qry)
+	recipeHandler := handler.NewRecipeHandler(recipeStore)
+	recipeRoutes.RegisterRoutes(recipeHandler)
 }
 
 func (s *ApiServer) Run() {
