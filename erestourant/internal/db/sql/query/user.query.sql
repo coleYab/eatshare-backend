@@ -2,8 +2,8 @@
 SELECT * FROM "user" WHERE id=$1;
 
 -- name: CreateUser :one
-INSERT INTO "user"("name", "email", "password", "role")
-VALUES ($1, $2, $3, $4)
+INSERT INTO "user"("name", "email", "password")
+VALUES ($1, $2, $3)
 RETURNING *;
 
 -- name: GetUserByEmail :one

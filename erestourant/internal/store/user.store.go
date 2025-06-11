@@ -21,7 +21,6 @@ func (s *UserStore) CreateUser(userParams dto.RegisterDto) (repository.User, err
 	return s.qry.CreateUser(ctx, repository.CreateUserParams{
 		Email:    userParams.Email,
 		Name:     userParams.Name,
-		Role:     userParams.Role,
 		Password: userParams.Password,
 	})
 }

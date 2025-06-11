@@ -12,32 +12,25 @@ import (
 )
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO "user"("name", "email", "password", "role")
-VALUES ($1, $2, $3, $4)
-RETURNING id, name, email, password, role, "createdAt", "updatedAt"
+INSERT INTO "user"("name", "email", "password")
+VALUES ($1, $2, $3)
+RETURNING id, name, email, password, "createdAt", "updatedAt"
 `
 
 type CreateUserParams struct {
 	Name     string `json:"name"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
-	Role     string `json:"role"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRow(ctx, createUser,
-		arg.Name,
-		arg.Email,
-		arg.Password,
-		arg.Role,
-	)
+	row := q.db.QueryRow(ctx, createUser, arg.Name, arg.Email, arg.Password)
 	var i User
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
 		&i.Email,
 		&i.Password,
-		&i.Role,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -54,7 +47,7 @@ func (q *Queries) DeleteUserById(ctx context.Context, id uuid.UUID) error {
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, name, email, password, role, "createdAt", "updatedAt" FROM "user" WHERE email=$1 LIMIT 1
+SELECT id, name, email, password, "createdAt", "updatedAt" FROM "user" WHERE email=$1 LIMIT 1
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
@@ -65,7 +58,6 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.Name,
 		&i.Email,
 		&i.Password,
-		&i.Role,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -73,7 +65,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 }
 
 const getUserById = `-- name: GetUserById :one
-SELECT id, name, email, password, role, "createdAt", "updatedAt" FROM "user" WHERE id=$1
+SELECT id, name, email, password, "createdAt", "updatedAt" FROM "user" WHERE id=$1
 `
 
 func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (User, error) {
@@ -84,7 +76,6 @@ func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.Name,
 		&i.Email,
 		&i.Password,
-		&i.Role,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -92,7 +83,7 @@ func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (User, error) {
 }
 
 const getUsers = `-- name: GetUsers :many
-SELECT id, name, email, password, role, "createdAt", "updatedAt" FROM "user"
+SELECT id, name, email, password, "createdAt", "updatedAt" FROM "user"
 `
 
 func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
@@ -109,7 +100,6 @@ func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
 			&i.Name,
 			&i.Email,
 			&i.Password,
-			&i.Role,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -131,7 +121,7 @@ SET
     "password" = $4,
     "updatedAt" = CURRENT_TIMESTAMP
 WHERE id = $1
-RETURNING id, name, email, password, role, "createdAt", "updatedAt"
+RETURNING id, name, email, password, "createdAt", "updatedAt"
 `
 
 type UpdateUserParams struct {
@@ -154,7 +144,6 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.Name,
 		&i.Email,
 		&i.Password,
-		&i.Role,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
